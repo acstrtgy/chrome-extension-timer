@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STRTGY Focus Timer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Start Screen -->
+    <div class="start-screen" id="start-screen">
+      <div class="start-content">
+        <div class="start-header">
+          <h1 class="start-title" data-i18n="screen.focusSession">Focus Session</h1>
+          <button class="start-btn" id="start-btn" data-i18n="actions.newSession">New Session</button>
+        </div>
+        
+        <div class="sessions-container">
+          <div class="sessions-header">
+            <span class="sessions-title" data-i18n="labels.sessions">Sessions</span>
+            <div class="sessions-actions">
+              <button class="clear-btn" id="export-btn" title="Download all sessions as CSV" data-i18n="actions.exportCsv" data-i18n-title="titles.exportCsv">Export CSV</button>
+              <button class="clear-btn" id="clear-btn" title="Clear all sessions" data-i18n="actions.clear" data-i18n-title="titles.clearSessions">Clear</button>
+            </div>
+          </div>
+          
+          <div class="sessions-table-header">
+            <div data-i18n="labels.session">Session</div>
+            <div data-i18n="labels.focus">Focus</div>
+            <div data-i18n="labels.wait">Wait</div>
+            <div data-i18n="labels.ratio">Ratio</div>
+          </div>
+          
+          <div class="sessions-list" id="sessions-list"></div>
+          
+          <div class="sessions-footer" id="sessions-footer">
+            <div class="sessions-total">
+              <span class="total-label" data-i18n="labels.total">Total</span>
+              <span class="total-work" id="total-work">0m</span>
+              <span class="total-standby" id="total-standby">0m</span>
+              <span class="total-ratio" id="total-ratio">—</span>
+            </div>
+          </div>
+          
+          <div class="sessions-empty hidden" id="sessions-empty" data-i18n="empty.noSessions">No sessions yet</div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="timer-screen hidden" id="timer-screen">
+      <div class="top-bar">
+        <div class="duration-control" id="duration-control">
+          <button class="duration-btn duration-active" data-duration="5">5</button>
+          <button class="duration-btn" data-duration="25">25</button>
+          <button class="duration-btn" data-duration="50">50</button>
+          <button class="duration-btn" data-duration="90">90</button>
+        </div>
+      </div>
+
+      <div class="timer-circle" id="timer-circle">
+        <div class="standby-label hidden" id="standby-label" data-i18n="status.standby">standby</div>
+        <svg width="300" height="300" viewBox="0 0 300 300" class="timer-svg" id="timer-svg">
+          <circle class="circle-bg" cx="150" cy="150" r="140" fill="none" stroke-width="1"></circle>
+          <path class="pie-fill" id="pie-fill" d=""></path>
+        </svg>
+        <div class="time-display">
+          <div class="digit-pair" id="minutes-pair">
+            <div class="digit-container" id="min-tens">0</div>
+            <div class="digit-container" id="min-units">5</div>
+          </div>
+          <span class="time-separator">:</span>
+          <div class="digit-pair" id="seconds-pair">
+            <div class="digit-container" id="sec-tens">0</div>
+            <div class="digit-container" id="sec-units">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="control-btn play-btn" id="play-btn" title="Start/Pause" data-i18n-title="titles.startPause">
+          <svg class="control-icon" viewBox="0 0 24 24" fill="currentColor">
+            <polygon class="play-icon-play" points="5 3 19 12 5 21 5 3"></polygon>
+            <rect class="play-icon-pause" x="6" y="4" width="4" height="16"></rect>
+            <rect class="play-icon-pause" x="14" y="4" width="4" height="16"></rect>
+          </svg>
+        </button>
+        <button class="control-btn" id="end-session-btn" data-i18n="actions.endSession">End Session</button>
+      </div>
+
+      <div class="session-task-card">
+        <label class="session-task-label" for="session-task-input" data-i18n="forms.sessionTaskTitle">
+          What is important to accomplish in this work session?
+        </label>
+        <textarea
+          class="session-task-input"
+          id="session-task-input"
+          rows="3"
+          placeholder="Describe the task or result you need to focus on right now."
+          data-i18n-placeholder="forms.sessionTaskPlaceholder"
+        ></textarea>
+      </div>
+
+      <form class="session-reflection-card hidden" id="session-reflection-form">
+        <h3 class="session-reflection-title" id="session-reflection-title" data-i18n="forms.reflectionBeforeNextBlock">Before starting the next focus block, answer these questions.</h3>
+
+        <fieldset class="session-reflection-fieldset">
+          <legend class="session-reflection-question" data-i18n-html="forms.question1">
+            Question 1. Use a 1–5 scale (1 = not at all, 5 = extremely)
+            <br>
+            How motivated did you feel to work on your tasks today?
+          </legend>
+          <div class="session-reflection-scale" id="motivation-scale">
+            <label><input type="radio" name="motivation" value="1">1</label>
+            <label><input type="radio" name="motivation" value="2">2</label>
+            <label><input type="radio" name="motivation" value="3">3</label>
+            <label><input type="radio" name="motivation" value="4">4</label>
+            <label><input type="radio" name="motivation" value="5">5</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="session-reflection-fieldset">
+          <legend class="session-reflection-question" data-i18n-html="forms.question2">
+            Question 2. Use a 1–5 scale (1 = not at all, 5 = extremely)
+            <br>
+            To what extent did you make progress on work that feels meaningful to you in this session?
+          </legend>
+          <div class="session-reflection-scale" id="meaning-scale">
+            <label><input type="radio" name="meaning" value="1">1</label>
+            <label><input type="radio" name="meaning" value="2">2</label>
+            <label><input type="radio" name="meaning" value="3">3</label>
+            <label><input type="radio" name="meaning" value="4">4</label>
+            <label><input type="radio" name="meaning" value="5">5</label>
+          </div>
+        </fieldset>
+
+        <label class="session-task-label" for="session-reflection-event" data-i18n-html="forms.question3">
+          Question 3. Free text
+          <br>
+          Briefly describe one event from today that stands out in your mind and is related to your work or progress.
+        </label>
+        <textarea
+          class="session-task-input"
+          id="session-reflection-event"
+          rows="3"
+          placeholder="Describe one work-related event or moment from today that stands out."
+          data-i18n-placeholder="forms.reflectionEventPlaceholder"
+        ></textarea>
+
+        <div class="reflection-actions">
+          <button class="control-btn reflection-submit-btn" id="reflection-submit-btn" type="submit" data-i18n="actions.saveReflection">Save Reflection</button>
+          <button class="control-btn reflection-cancel-btn hidden" id="reflection-cancel-btn" type="button" data-i18n="actions.cancel">Cancel</button>
+        </div>
+      </form>
+
+      <div class="sessions-container timer-sessions">
+        <div class="sessions-table-header">
+          <div data-i18n="labels.session">Session</div>
+          <div data-i18n="labels.focus">Focus</div>
+          <div data-i18n="labels.wait">Wait</div>
+          <div data-i18n="labels.ratio">Ratio</div>
+        </div>
+        <div class="stats-list" id="stats-list"></div>
+      </div>
+    </div>
+
+    <footer class="app-footer">
+      <div class="app-footer-meta">
+        <span>© Antonio Civita &amp; STRTGY, 2026 - </span>
+        <a href="https://strtgy.design/timer-updates" target="_blank" rel="noopener noreferrer" data-i18n="footer.stayUpdated">
+          Stay updated on this project
+        </a>
+      </div>
+      <div class="app-footer-controls">
+        <button class="theme-toggle" id="theme-toggle" data-i18n="theme.auto">Auto</button>
+        <div class="language-switcher">
+          <button class="language-toggle" id="language-toggle" type="button" aria-expanded="false" aria-haspopup="true" data-i18n-aria-label="titles.changeLanguage">
+            <svg class="language-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"></circle>
+              <path d="M3 12h18"></path>
+              <path d="M12 3a14 14 0 0 1 0 18"></path>
+              <path d="M12 3a14 14 0 0 0 0 18"></path>
+            </svg>
+          </button>
+          <div class="language-menu hidden" id="language-menu">
+            <button class="language-option" type="button" data-language="en">English</button>
+            <button class="language-option" type="button" data-language="it">Italiano</button>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="db.js"></script>
+  <script src="timer.js"></script>
+</body>
+</html>

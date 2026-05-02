@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro Timer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Start Screen -->
+    <div class="start-screen" id="start-screen">
+      <div class="start-content">
+        <div class="start-header">
+          <h1 class="start-title">Focus Session</h1>
+          <button class="start-btn" id="start-btn">New Session</button>
+        </div>
+        
+        <div class="sessions-container">
+          <div class="sessions-header">
+            <span class="sessions-title">Sessions</span>
+            <button class="clear-btn" id="clear-btn" title="Clear all sessions">Clear</button>
+          </div>
+          
+          <div class="sessions-table-header">
+            <div>Time</div>
+            <div>Work</div>
+            <div>Standby</div>
+          </div>
+          
+          <div class="sessions-list" id="sessions-list"></div>
+          
+          <div class="sessions-footer" id="sessions-footer">
+            <div class="sessions-total">
+              <span class="total-label">Total</span>
+              <span class="total-work" id="total-work">0m</span>
+              <span class="total-standby" id="total-standby">0m</span>
+            </div>
+          </div>
+          
+          <div class="sessions-empty hidden" id="sessions-empty">No sessions yet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timer Screen -->
+    <div class="timer-screen hidden" id="timer-screen">
+      <div class="top-bar">
+        <div class="duration-control" id="duration-control">
+          <button class="duration-btn duration-active" data-duration="5">5</button>
+          <button class="duration-btn" data-duration="25">25</button>
+          <button class="duration-btn" data-duration="50">50</button>
+          <button class="duration-btn" data-duration="90">90</button>
+        </div>
+        <button class="theme-toggle" id="theme-toggle">Auto</button>
+      </div>
+
+      <div class="timer-circle">
+        <svg width="300" height="300" viewBox="0 0 300 300" class="timer-svg">
+          <circle class="circle-bg" cx="150" cy="150" r="140" fill="none" stroke-width="1"></circle>
+          <path class="pie-fill" id="pie-fill" d=""></path>
+        </svg>
+        <div class="time-display">
+          <span id="minutes" class="time-number">05</span>
+          <span class="time-separator">:</span>
+          <span id="seconds" class="time-number">00</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="control-btn" id="reset-btn" title="Reset">
+          <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12"></path>
+          </svg>
+        </button>
+        <button class="play-btn" id="play-btn" title="Start">
+          <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+            <polygon class="play-icon-play" points="5 3 19 12 5 21 5 3"></polygon>
+            <rect class="play-icon-pause" x="6" y="4" width="4" height="16"></rect>
+            <rect class="play-icon-pause" x="14" y="4" width="4" height="16"></rect>
+          </svg>
+        </button>
+        <button class="control-btn" id="skip-btn" title="Skip">
+          <svg class="control-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+            <line x1="19" y1="5" x2="19" y2="19"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="stats-section" id="stats-section">
+        <div class="stats-header">
+          <span class="stats-title">Session Statistics</span>
+        </div>
+        <div class="stats-list" id="stats-list"></div>
+      </div>
+
+      <button class="end-session-btn" id="end-session-btn">End Session</button>
+    </div>
+  </div>
+
+  <script src="db.js"></script>
+  <script src="timer.js"></script>
+</body>
+</html>
