@@ -103,8 +103,30 @@ function deleteSession(index) {
  */
 function deleteSessionByTimestamp(timestamp) {
   const sessions = getAllSessions();
-  const nextSessions = sessions.filter((session) => session.timestamp !== timestamp);
+  const nextSessions = sessions.filter((session) => String(session.timestamp) !== String(timestamp));
   saveSessions(nextSessions);
+}
+
+/**
+ * Update a specific session by timestamp
+ */
+function updateSessionByTimestamp(timestamp, updates) {
+  const sessions = getAllSessions();
+  const sessionIndex = sessions.findIndex((session) => String(session.timestamp) === String(timestamp));
+
+  if (sessionIndex === -1) {
+    return null;
+  }
+
+  const updatedSession = {
+    ...sessions[sessionIndex],
+    ...updates,
+    timestamp: sessions[sessionIndex].timestamp,
+  };
+
+  sessions[sessionIndex] = updatedSession;
+  saveSessions(sessions);
+  return updatedSession;
 }
 
 /**
@@ -167,6 +189,7 @@ window.DB = {
   clearAllSessions,
   deleteSession,
   deleteSessionByTimestamp,
+  updateSessionByTimestamp,
   getSessionFocusTime,
   getSessionStandbyTime,
   getStatsSummary

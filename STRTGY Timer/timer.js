@@ -15,6 +15,7 @@ const TRANSLATIONS = {
       clear: 'Clear',
       endSession: 'End Session',
       cancel: 'Cancel',
+      saveSession: 'Save Session',
       saveReflection: 'Save Reflection',
       saveReflectionEnd: 'Save Reflection and End Session',
     },
@@ -62,6 +63,7 @@ const TRANSLATIONS = {
       clearSessions: 'Clear all sessions',
       startPause: 'Start/Pause',
       deleteSession: 'Delete session',
+      editSession: 'Edit session',
       changeLanguage: 'Change language',
     },
     messages: {
@@ -72,6 +74,8 @@ const TRANSLATIONS = {
       reflectionRequiredEndSession: 'Please answer all reflection questions before ending this session.',
       noSessionsToExport: 'No sessions available to export.',
       exportFailed: 'Unable to export sessions right now.',
+      updateFailed: 'Unable to update this session right now.',
+      close: 'Close',
     },
     locale: 'en-US',
   },
@@ -85,6 +89,7 @@ const TRANSLATIONS = {
       clear: 'Cancella',
       endSession: 'Chiudi sessione',
       cancel: 'Annulla',
+      saveSession: 'Salva sessione',
       saveReflection: 'Salva riflessione',
       saveReflectionEnd: 'Salva riflessione e chiudi sessione',
     },
@@ -132,6 +137,7 @@ const TRANSLATIONS = {
       clearSessions: 'Cancella tutte le sessioni',
       startPause: 'Avvia/Pausa',
       deleteSession: 'Elimina sessione',
+      editSession: 'Modifica sessione',
       changeLanguage: 'Cambia lingua',
     },
     messages: {
@@ -142,6 +148,8 @@ const TRANSLATIONS = {
       reflectionRequiredEndSession: 'Rispondi a tutte le domande prima di chiudere questa sessione.',
       noSessionsToExport: 'Non ci sono sessioni da esportare.',
       exportFailed: 'Impossibile esportare le sessioni in questo momento.',
+      updateFailed: 'Impossibile aggiornare questa sessione in questo momento.',
+      close: 'Chiudi',
     },
     locale: 'it-IT',
   },
@@ -235,6 +243,9 @@ class TimerApp {
       totalWork: document.getElementById('total-work'),
       totalStandby: document.getElementById('total-standby'),
       totalRatio: document.getElementById('total-ratio'),
+      sessionEditModal: document.getElementById('session-edit-modal'),
+      sessionEditForm: document.getElementById('session-edit-form'),
+      sessionEditCloseBtn: document.getElementById('session-edit-close-btn'),
     };
 
     this.elements = elements;
@@ -271,6 +282,12 @@ class TimerApp {
     el.sessionTaskInput.addEventListener('input', (e) => this.updateSessionTask(e.target.value));
     el.sessionReflectionForm.addEventListener('submit', (e) => this.handleReflectionSubmit(e));
     el.reflectionCancelBtn.addEventListener('click', () => this.cancelPendingEndSession());
+    el.sessionEditCloseBtn.addEventListener('click', () => this.closeSessionEditModal());
+    el.sessionEditModal.addEventListener('click', (event) => {
+      if (event.target === el.sessionEditModal) {
+        this.closeSessionEditModal();
+      }
+    });
 
     el.durationBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -281,6 +298,12 @@ class TimerApp {
     });
 
     document.addEventListener('keydown', (e) => {
+      if (e.code === 'Escape' && !el.sessionEditModal.classList.contains('hidden')) {
+        e.preventDefault();
+        this.closeSessionEditModal();
+        return;
+      }
+
       const target = e.target;
       const isTypingField = target instanceof HTMLElement && (
         target.tagName === 'INPUT' ||
@@ -917,6 +940,12 @@ class TimerApp {
         <span class="expand-icon">▶</span>
         <span class="session-time">${time}</span>
         <span class="session-intervals">${intervalCount} ${this.t('labels.focusCount')}</span>
+        <button class="session-edit-btn" type="button" title="${this.t('titles.editSession')}" aria-label="${this.t('titles.editSession')}">
+          <svg class="session-action-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+          </svg>
+        </button>
         <button class="session-delete-btn" type="button" title="${this.t('titles.deleteSession')}">×</button>
       </div>
       <div class="session-summary-totals">
@@ -998,11 +1027,201 @@ class TimerApp {
       event.stopPropagation();
       await this.deleteSession(session.timestamp);
     });
+
+    const editButton = summaryRow.querySelector('.session-edit-btn');
+    editButton.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.openSessionEditModal(session);
+    });
     
     row.appendChild(summaryRow);
     row.appendChild(detailsContainer);
     
     return row;
+  }
+
+  openSessionEditModal(session) {
+    const form = this.elements.sessionEditForm;
+    form.innerHTML = '';
+    form.dataset.sessionTimestamp = String(session.timestamp);
+    this.populateSessionEditForm(session, form);
+    this.elements.sessionEditModal.classList.remove('hidden');
+    form.querySelector('textarea, input, button')?.focus();
+  }
+
+  closeSessionEditModal() {
+    this.elements.sessionEditModal.classList.add('hidden');
+    this.elements.sessionEditForm.innerHTML = '';
+    delete this.elements.sessionEditForm.dataset.sessionTimestamp;
+  }
+
+  populateSessionEditForm(session, form) {
+    const taskLabel = document.createElement('label');
+    taskLabel.className = 'session-task-label';
+    taskLabel.textContent = this.t('forms.sessionTaskExpanded');
+
+    const taskInput = document.createElement('textarea');
+    taskInput.className = 'session-task-input';
+    taskInput.name = 'task';
+    taskInput.rows = 3;
+    taskInput.value = session.task || '';
+
+    form.appendChild(taskLabel);
+    form.appendChild(taskInput);
+
+    const intervals = Array.isArray(session.focusIntervals) ? session.focusIntervals : [];
+    intervals.forEach((interval, index) => {
+      const intervalEditor = document.createElement('div');
+      intervalEditor.className = 'session-edit-interval';
+
+      const title = document.createElement('span');
+      title.className = 'session-edit-interval-title';
+      title.textContent = `${this.t('labels.focus')} ${index + 1}`;
+
+      intervalEditor.appendChild(title);
+      intervalEditor.appendChild(this.createNumberField(
+        `${this.t('labels.focus')} (s)`,
+        `interval-${index}-focus`,
+        interval.focusDuration || 0,
+        { min: 0 },
+      ));
+      intervalEditor.appendChild(this.createNumberField(
+        `${this.t('labels.wait')} (s)`,
+        `interval-${index}-standby`,
+        interval.standbyDuration || 0,
+        { min: 0 },
+      ));
+      form.appendChild(intervalEditor);
+    });
+
+    const reflections = Array.isArray(session.reflections) ? session.reflections : [];
+    reflections.forEach((reflection, index) => {
+      const reflectionEditor = document.createElement('div');
+      reflectionEditor.className = 'session-edit-reflection';
+
+      const title = document.createElement('span');
+      title.className = 'session-edit-interval-title';
+      title.textContent = this.t('labels.postFocusReflection', { index: index + 1 });
+
+      reflectionEditor.appendChild(title);
+      reflectionEditor.appendChild(this.createNumberField(
+        this.t('labels.motivation'),
+        `reflection-${index}-motivation`,
+        reflection.motivation || '',
+        { min: 1, max: 5 },
+      ));
+      reflectionEditor.appendChild(this.createNumberField(
+        this.t('labels.meaningfulProgress'),
+        `reflection-${index}-meaning`,
+        reflection.meaning || '',
+        { min: 1, max: 5 },
+      ));
+
+      const eventInput = document.createElement('textarea');
+      eventInput.className = 'session-task-input';
+      eventInput.name = `reflection-${index}-event`;
+      eventInput.rows = 2;
+      eventInput.value = reflection.event || '';
+      reflectionEditor.appendChild(eventInput);
+      form.appendChild(reflectionEditor);
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'reflection-actions';
+    actions.innerHTML = `
+      <button class="control-btn reflection-submit-btn" type="submit">${this.escapeHtml(this.t('actions.saveSession'))}</button>
+      <button class="control-btn reflection-cancel-btn" type="button">${this.escapeHtml(this.t('actions.cancel'))}</button>
+    `;
+    form.appendChild(actions);
+
+    actions.querySelector('.reflection-cancel-btn').addEventListener('click', () => {
+      this.closeSessionEditModal();
+    });
+
+    form.onsubmit = async (event) => {
+      event.preventDefault();
+      await this.saveSessionEdits(session, form);
+    };
+  }
+
+  createNumberField(labelText, name, value, { min = null, max = null } = {}) {
+    const label = document.createElement('label');
+    const labelSpan = document.createElement('span');
+    const input = document.createElement('input');
+
+    labelSpan.textContent = labelText;
+    input.type = 'number';
+    input.step = '1';
+    input.name = name;
+    input.value = value;
+
+    if (min !== null) {
+      input.min = String(min);
+    }
+
+    if (max !== null) {
+      input.max = String(max);
+    }
+
+    label.appendChild(labelSpan);
+    label.appendChild(input);
+    return label;
+  }
+
+  parseEditedDuration(value) {
+    const duration = Number(value);
+    if (!Number.isFinite(duration) || duration < 0) {
+      return 0;
+    }
+
+    return Math.floor(duration);
+  }
+
+  parseEditedScaleValue(value, fallback) {
+    const score = Number(value);
+    if (!Number.isFinite(score)) {
+      return fallback;
+    }
+
+    return Math.min(5, Math.max(1, Math.round(score)));
+  }
+
+  async saveSessionEdits(session, form) {
+    const formData = new FormData(form);
+    const intervals = Array.isArray(session.focusIntervals) ? session.focusIntervals : [];
+    const reflections = Array.isArray(session.reflections) ? session.reflections : [];
+
+    const updatedIntervals = intervals.map((interval, index) => ({
+      ...interval,
+      focusDuration: this.parseEditedDuration(formData.get(`interval-${index}-focus`)),
+      standbyDuration: this.parseEditedDuration(formData.get(`interval-${index}-standby`)),
+    }));
+
+    const updatedReflections = reflections.map((reflection, index) => ({
+      ...reflection,
+      motivation: this.parseEditedScaleValue(formData.get(`reflection-${index}-motivation`), reflection.motivation),
+      meaning: this.parseEditedScaleValue(formData.get(`reflection-${index}-meaning`), reflection.meaning),
+      event: String(formData.get(`reflection-${index}-event`) || '').trim(),
+    }));
+
+    try {
+      const updatedSession = await DB.updateSessionByTimestamp(session.timestamp, {
+        task: String(formData.get('task') || '').trim(),
+        focusIntervals: updatedIntervals,
+        reflections: updatedReflections,
+      });
+
+      if (!updatedSession) {
+        throw new Error('Session not found');
+      }
+
+      await this.loadSessionsList();
+      await this.updateTodaySummary();
+      this.closeSessionEditModal();
+    } catch (error) {
+      console.error('Error updating session:', error);
+      alert(this.t('messages.updateFailed'));
+    }
   }
 
   async deleteSession(timestamp) {
