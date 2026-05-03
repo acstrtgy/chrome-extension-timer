@@ -14,6 +14,9 @@ const TRANSLATIONS = {
       exportCsv: 'Export CSV',
       clear: 'Clear',
       endSession: 'End Session',
+      startFocus: 'Start focus',
+      pause: 'Pause',
+      resume: 'Resume',
       cancel: 'Cancel',
       saveSession: 'Save Session',
       saveReflection: 'Save Reflection',
@@ -32,9 +35,45 @@ const TRANSLATIONS = {
       motivation: 'Motivation',
       meaningfulProgress: 'Meaningful progress',
       postFocusReflection: 'Post-focus reflection {index}',
+      started: 'Started',
+      interval: 'Interval',
+      intervals: 'Intervals',
+      totalFocus: 'Total focus',
+      totalWait: 'Total wait',
+      avgRatio: 'Avg ratio',
+      duration: 'Duration',
+      chooseMinutes: 'Choose minutes',
+      custom: 'custom',
+      minutesShort: 'min',
+      thisSession: 'This session',
+      focusSoFar: 'Focus so far',
+      waitSoFar: 'Wait so far',
+      ready: 'Ready',
+      planned: 'planned',
+      focusing: 'Focusing',
+      paused: 'Paused',
+      in: 'in',
+      elapsed: 'elapsed',
+      noIntervalsYet: 'No intervals yet',
+      firstFocus: 'this is your first focus',
+      longerThanWaited: 'Focused {ratio} longer than waited',
+      waitedLongerThanFocused: 'Waited {ratio} longer than focused',
+      noCompletedFocus: 'No completed focus',
+      noWaitRecorded: 'No wait time recorded',
+      task: 'Task',
+      reflection: 'Reflection',
+      focusDuration: 'Focus duration',
+      waitDuration: 'Wait duration',
+      hours: 'Hours',
+      minutes: 'Minutes',
+      seconds: 'Seconds',
+      taskHint: 'What did you focus on?',
+      reflectionNote: 'Reflection note',
+      modalMeta: '{time} · {intervals} · {focus}',
     },
     empty: {
       noSessions: 'No sessions yet',
+      noSessionsHint: 'Start a focus session to begin tracking your work and wait time.',
     },
     status: {
       standby: 'standby',
@@ -65,6 +104,8 @@ const TRANSLATIONS = {
       deleteSession: 'Delete session',
       editSession: 'Edit session',
       changeLanguage: 'Change language',
+      closeSession: 'Close session',
+      customDuration: 'Custom duration in minutes',
     },
     messages: {
       resumeUnsupported: 'Resuming past sessions is not yet supported with the new tracking format.',
@@ -88,6 +129,9 @@ const TRANSLATIONS = {
       exportCsv: 'Esporta CSV',
       clear: 'Cancella',
       endSession: 'Chiudi sessione',
+      startFocus: 'Avvia focus',
+      pause: 'Pausa',
+      resume: 'Riprendi',
       cancel: 'Annulla',
       saveSession: 'Salva sessione',
       saveReflection: 'Salva riflessione',
@@ -106,9 +150,45 @@ const TRANSLATIONS = {
       motivation: 'Motivazione',
       meaningfulProgress: 'Progresso significativo',
       postFocusReflection: 'Riflessione post-focus {index}',
+      started: 'Inizio',
+      interval: 'Intervallo',
+      intervals: 'Intervalli',
+      totalFocus: 'Focus totale',
+      totalWait: 'Attesa totale',
+      avgRatio: 'Rapporto medio',
+      duration: 'Durata',
+      chooseMinutes: 'Scegli i minuti',
+      custom: 'custom',
+      minutesShort: 'min',
+      thisSession: 'Questa sessione',
+      focusSoFar: 'Focus finora',
+      waitSoFar: 'Attesa finora',
+      ready: 'Pronto',
+      planned: 'previsti',
+      focusing: 'Focus',
+      paused: 'Pausa',
+      in: 'trascorsi',
+      elapsed: 'trascorsi',
+      noIntervalsYet: 'Nessun intervallo',
+      firstFocus: 'questo è il primo focus',
+      longerThanWaited: 'Focus {ratio} più lungo dell’attesa',
+      waitedLongerThanFocused: 'Attesa {ratio} più lunga del focus',
+      noCompletedFocus: 'Nessun focus completato',
+      noWaitRecorded: 'Nessuna attesa registrata',
+      task: 'Compito',
+      reflection: 'Riflessione',
+      focusDuration: 'Durata focus',
+      waitDuration: 'Durata attesa',
+      hours: 'Ore',
+      minutes: 'Minuti',
+      seconds: 'Secondi',
+      taskHint: 'Su che cosa ti sei concentrato?',
+      reflectionNote: 'Nota di riflessione',
+      modalMeta: '{time} · {intervals} · {focus}',
     },
     empty: {
       noSessions: 'Nessuna sessione',
+      noSessionsHint: 'Avvia una sessione di focus per iniziare a tracciare lavoro e attesa.',
     },
     status: {
       standby: 'standby',
@@ -139,6 +219,8 @@ const TRANSLATIONS = {
       deleteSession: 'Elimina sessione',
       editSession: 'Modifica sessione',
       changeLanguage: 'Cambia lingua',
+      closeSession: 'Chiudi sessione',
+      customDuration: 'Durata personalizzata in minuti',
     },
     messages: {
       resumeUnsupported: 'Riprendere sessioni passate non è ancora supportato con questo nuovo formato di tracciamento.',
@@ -210,8 +292,12 @@ class TimerApp {
   cacheDOM() {
     const elements = {
       startScreen: document.getElementById('start-screen'),
+      startSubtitle: document.getElementById('start-subtitle'),
       timerScreen: document.getElementById('timer-screen'),
+      timerSubtitle: document.getElementById('timer-subtitle'),
+      timerCloseBtn: document.getElementById('timer-close-btn'),
       startBtn: document.getElementById('start-btn'),
+      emptyStartBtn: document.getElementById('empty-start-btn'),
       clearBtn: document.getElementById('clear-btn'),
       exportBtn: document.getElementById('export-btn'),
       endSessionBtn: document.getElementById('end-session-btn'),
@@ -234,10 +320,23 @@ class TimerApp {
       timerSvg: document.getElementById('timer-svg'),
       standbyLabel: document.getElementById('standby-label'),
       duration: document.getElementById('duration-control'),
+      durationHint: document.getElementById('duration-hint'),
+      customDurationBtn: document.getElementById('custom-duration-btn'),
+      customDurationValue: document.getElementById('custom-duration-value'),
+      customDurationUnit: document.getElementById('custom-duration-unit'),
+      customDurationEditor: document.getElementById('custom-duration-editor'),
+      customDurationInput: document.getElementById('custom-duration-input'),
       playBtn: document.getElementById('play-btn'),
+      playBtnLabel: document.getElementById('play-btn-label'),
       durationBtns: document.querySelectorAll('.duration-btn'),
       statsList: document.getElementById('stats-list'),
+      liveIntervalCount: document.getElementById('live-interval-count'),
+      liveSummary: document.getElementById('live-summary'),
+      liveTotalFocus: document.getElementById('live-total-focus'),
+      liveTotalStandby: document.getElementById('live-total-standby'),
+      liveTotalRatio: document.getElementById('live-total-ratio'),
       sessionsList: document.getElementById('sessions-list'),
+      sessionsCount: document.getElementById('sessions-count'),
       sessionsEmpty: document.getElementById('sessions-empty'),
       sessionsFooter: document.getElementById('sessions-footer'),
       totalWork: document.getElementById('total-work'),
@@ -245,6 +344,7 @@ class TimerApp {
       totalRatio: document.getElementById('total-ratio'),
       sessionEditModal: document.getElementById('session-edit-modal'),
       sessionEditForm: document.getElementById('session-edit-form'),
+      sessionEditSubtitle: document.getElementById('session-edit-subtitle'),
       sessionEditCloseBtn: document.getElementById('session-edit-close-btn'),
     };
 
@@ -259,9 +359,17 @@ class TimerApp {
       unlockAudio();
       this.startSession();
     });
+    el.emptyStartBtn.addEventListener('click', () => {
+      unlockAudio();
+      this.startSession();
+    });
     el.clearBtn.addEventListener('click', () => this.clearAllSessions());
     el.exportBtn.addEventListener('click', () => this.exportSessionsCsv());
     el.endSessionBtn.addEventListener('click', () => {
+      unlockAudio();
+      this.endSession();
+    });
+    el.timerCloseBtn.addEventListener('click', () => {
       unlockAudio();
       this.endSession();
     });
@@ -293,8 +401,24 @@ class TimerApp {
       btn.addEventListener('click', (e) => {
         if (this.isRunning) return;
         unlockAudio();
-        this.setDuration(parseInt(e.target.dataset.duration));
+        const durationValue = e.currentTarget.dataset.duration;
+        if (durationValue === 'custom') {
+          this.openCustomDurationEditor();
+          return;
+        }
+        this.setDuration(parseInt(durationValue, 10));
       });
+    });
+
+    el.customDurationInput.addEventListener('blur', () => this.commitCustomDuration());
+    el.customDurationInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        this.commitCustomDuration();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        this.closeCustomDurationEditor();
+      }
     });
 
     document.addEventListener('keydown', (e) => {
@@ -379,6 +503,7 @@ class TimerApp {
 
     this.updateTheme();
     this.updateLanguageMenu();
+    this.updateDuration();
     this.updateReflectionState();
     this.updateVisualState();
   }
@@ -826,12 +951,13 @@ class TimerApp {
     
     try {
       const sessions = await DB.getAllSessions();
-      const today = new Date().toDateString();
       
       if (sessions.length === 0) {
         el.sessionsList.innerHTML = '';
         el.sessionsEmpty.classList.remove('hidden');
         el.sessionsFooter.style.display = 'none';
+        el.sessionsCount.textContent = '0';
+        el.startSubtitle.textContent = this.t('empty.noSessions');
         el.totalRatio.textContent = '—';
         el.totalRatio.className = 'total-ratio ratio-neutral';
         return;
@@ -840,6 +966,7 @@ class TimerApp {
       el.sessionsEmpty.classList.add('hidden');
       el.sessionsFooter.style.display = 'block';
       el.sessionsList.innerHTML = '';
+      el.sessionsCount.textContent = String(sessions.length);
       
       // Sort by timestamp descending (newest first)
       sessions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -850,8 +977,9 @@ class TimerApp {
       const sessionRatios = [];
       
       // Show last 20 sessions grouped by date
-      const sessionsByDate = {};
-      sessions.slice(0, 20).forEach(session => {
+      const visibleSessions = sessions.slice(0, 20);
+      const sessionsByDate = new Map();
+      visibleSessions.forEach(session => {
         const focusTime = DB.getSessionFocusTime(session);
         const standbyTime = DB.getSessionStandbyTime(session);
 
@@ -864,26 +992,14 @@ class TimerApp {
         }
         
         const date = new Date(session.timestamp).toDateString();
-        if (!sessionsByDate[date]) {
-          sessionsByDate[date] = [];
+        if (!sessionsByDate.has(date)) {
+          sessionsByDate.set(date, []);
         }
-        sessionsByDate[date].push(session);
+        sessionsByDate.get(date).push(session);
       });
       
-      for (const [date, daySessions] of Object.entries(sessionsByDate)) {
-        // Only show date header if not today (today is obvious)
-        if (date !== today) {
-          const dateRow = document.createElement('div');
-          dateRow.className = 'session-date-header';
-          dateRow.textContent = this.formatDateHeader(date);
-          el.sessionsList.appendChild(dateRow);
-        }
-        
-        // Sessions for this date
-        daySessions.forEach(session => {
-          const row = this.createSessionRow(session);
-          el.sessionsList.appendChild(row);
-        });
+      for (const [date, daySessions] of sessionsByDate.entries()) {
+        el.sessionsList.appendChild(this.createDayGroup(date, daySessions));
       }
       
       // Update footer totals
@@ -891,6 +1007,7 @@ class TimerApp {
       el.totalStandby.textContent = this.formatTimeDetailed(totalStandby);
       el.totalRatio.textContent = this.formatAverageRatio(sessionRatios);
       el.totalRatio.className = `total-ratio ${this.getRatioClass(totalWork, totalStandby)}`;
+      el.startSubtitle.textContent = `${this.formatSessionCount(sessions.length)} · ${this.formatTimeDetailed(totalWork)} ${this.t('labels.focus').toLowerCase()}`;
       
     } catch (error) {
       console.error('Error loading sessions:', error);
@@ -916,42 +1033,147 @@ class TimerApp {
     }
   }
 
-  createSessionRow(session) {
+  formatSessionCount(count) {
+    const labelKey = count === 1 ? 'labels.session' : 'labels.sessions';
+    return `${count} ${this.t(labelKey).toLowerCase()}`;
+  }
+
+  formatIntervalCount(count) {
+    const labelKey = count === 1 ? 'labels.interval' : 'labels.intervals';
+    return `${count} ${this.t(labelKey).toLowerCase()}`;
+  }
+
+  formatDaySubtitle(dateString, sessionCount) {
+    const date = new Date(dateString);
+    const formattedDate = date.toLocaleDateString(this.getLocale(), {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+
+    return `${this.formatSessionCount(sessionCount)} · ${formattedDate}`;
+  }
+
+  createDayGroup(dateString, daySessions) {
+    const group = document.createElement('section');
+    group.className = 'session-day-group';
+
+    const dayFocus = daySessions.reduce((sum, session) => sum + DB.getSessionFocusTime(session), 0);
+    const date = new Date(dateString);
+    const dayNumber = date.toLocaleDateString(this.getLocale(), { day: '2-digit' });
+
+    const header = document.createElement('div');
+    header.className = 'session-day-header';
+    header.innerHTML = `
+      <div class="session-day-icon" aria-hidden="true">
+        <span>${this.escapeHtml(dayNumber)}</span>
+      </div>
+      <div class="session-day-main">
+        <div class="session-day-title">${this.escapeHtml(this.formatDateHeader(dateString))}</div>
+        <div class="session-day-subtitle">${this.escapeHtml(this.formatDaySubtitle(dateString, daySessions.length))}</div>
+      </div>
+      <div class="session-day-total">${this.escapeHtml(this.formatTimeDetailed(dayFocus))}</div>
+    `;
+
+    const list = document.createElement('div');
+    list.className = 'session-day-list';
+    daySessions.forEach((session, index) => {
+      list.appendChild(this.createSessionRow(session, index + 1));
+    });
+
+    group.appendChild(header);
+    group.appendChild(list);
+    return group;
+  }
+
+  formatRatioDescriptionHtml(focus, standby) {
+    if (standby === 0) {
+      return this.escapeHtml(focus > 0 ? this.t('labels.noWaitRecorded') : this.t('labels.noCompletedFocus'));
+    }
+
+    const marker = '__RATIO__';
+    const ratio = focus / standby;
+    const key = ratio < 1 ? 'labels.waitedLongerThanFocused' : 'labels.longerThanWaited';
+    const ratioText = ratio < 1 ? `${(standby / Math.max(focus, 1)).toFixed(1)}x` : this.formatRatio(focus, standby);
+
+    if (focus === 0) {
+      return this.escapeHtml(this.t('labels.noCompletedFocus'));
+    }
+
+    return this.escapeHtml(this.t(key, { ratio: marker }))
+      .replace(marker, `<b>${this.escapeHtml(ratioText)}</b>`);
+  }
+
+  createScoreDots(value, max = 5) {
+    const score = Math.max(0, Math.min(max, Number(value) || 0));
+    const dots = Array.from({ length: max }, (_, index) => (
+      `<span class="score-dot${index < score ? ' on' : ''}"></span>`
+    )).join('');
+
+    return `<span class="score-dots" aria-hidden="true">${dots}</span><span>${score}/${max}</span>`;
+  }
+
+  createSessionRow(session, focusOrdinal) {
     const row = document.createElement('div');
     row.className = 'session-row';
     
     const sessionFocusTime = DB.getSessionFocusTime(session);
     const sessionStandbyTime = DB.getSessionStandbyTime(session);
-    const ratioText = this.formatRatio(sessionFocusTime, sessionStandbyTime);
     const ratioClass = this.getRatioClass(sessionFocusTime, sessionStandbyTime);
     const intervalCount = session.focusIntervals ? session.focusIntervals.length : 0;
     
     const time = new Date(session.timestamp).toLocaleTimeString(this.getLocale(), {
       hour: '2-digit',
       minute: '2-digit',
+      second: '2-digit',
       hour12: false
     });
     
     // Session summary row (click to expand)
     const summaryRow = document.createElement('div');
     summaryRow.className = 'session-summary';
+    summaryRow.setAttribute('role', 'button');
+    summaryRow.setAttribute('tabindex', '0');
+    summaryRow.setAttribute('aria-expanded', 'false');
     summaryRow.innerHTML = `
-      <div class="session-summary-main">
-        <span class="expand-icon">▶</span>
-        <span class="session-time">${time}</span>
-        <span class="session-intervals">${intervalCount} ${this.t('labels.focusCount')}</span>
-        <button class="session-edit-btn" type="button" title="${this.t('titles.editSession')}" aria-label="${this.t('titles.editSession')}">
+      <div class="session-primary">
+        <span class="session-focus-duration">${this.escapeHtml(this.formatTimeDetailed(sessionFocusTime))}</span>
+        <span class="session-focus-ordinal">#${focusOrdinal}</span>
+      </div>
+      <div class="session-actions">
+        <button class="session-edit-btn" type="button" title="${this.escapeHtml(this.t('titles.editSession'))}" aria-label="${this.escapeHtml(this.t('titles.editSession'))}">
           <svg class="session-action-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 20h9"></path>
             <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
           </svg>
         </button>
-        <button class="session-delete-btn" type="button" title="${this.t('titles.deleteSession')}">×</button>
+        <button class="session-delete-btn" type="button" title="${this.escapeHtml(this.t('titles.deleteSession'))}" aria-label="${this.escapeHtml(this.t('titles.deleteSession'))}">
+          <svg class="session-action-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 6h18"></path>
+            <path d="M8 6V4h8v2"></path>
+            <path d="M6 6l1 14h10l1-14"></path>
+            <path d="M10 10v6"></path>
+            <path d="M14 10v6"></path>
+          </svg>
+        </button>
       </div>
-      <div class="session-summary-totals">
-        <span class="session-work">${this.formatTimeDetailed(sessionFocusTime)}</span>
-        <span class="session-standby">${this.formatTimeDetailed(sessionStandbyTime)}</span>
-        <span class="session-ratio ${ratioClass}">${ratioText}</span>
+      <div class="session-meta">
+        <span class="session-meta-item">
+          <span class="session-meta-label">${this.escapeHtml(this.t('labels.started'))}</span>
+          <span class="session-meta-value">${this.escapeHtml(time)}</span>
+        </span>
+        <span class="session-meta-item">
+          <span class="session-meta-label">${this.escapeHtml(this.t('labels.intervals'))}</span>
+          <span class="session-meta-value">${intervalCount}</span>
+        </span>
+        <span class="session-meta-item">
+          <span class="session-meta-label">${this.escapeHtml(this.t('labels.wait'))}</span>
+          <span class="session-meta-value">${this.escapeHtml(this.formatTimeDetailed(sessionStandbyTime))}</span>
+        </span>
+      </div>
+      <div class="session-ratio-row">
+        <span class="session-ratio-description ${ratioClass}">${this.formatRatioDescriptionHtml(sessionFocusTime, sessionStandbyTime)}</span>
+        <span class="expand-icon" aria-hidden="true">▾</span>
       </div>
     `;
     
@@ -962,9 +1184,9 @@ class TimerApp {
 
     if (session.task && session.task.trim()) {
       const taskPreview = document.createElement('div');
-      taskPreview.className = 'session-task-preview';
+      taskPreview.className = 'session-task-preview session-expanded-section';
       taskPreview.innerHTML = `
-        <h3 class="session-task-question">${this.escapeHtml(this.t('forms.sessionTaskExpanded'))}</h3>
+        <div class="session-expanded-label">${this.escapeHtml(this.t('labels.task'))}</div>
         <p class="session-task-answer">${this.escapeHtml(session.task.trim())}</p>
       `;
       detailsContainer.appendChild(taskPreview);
@@ -974,11 +1196,17 @@ class TimerApp {
     if (session.reflections && session.reflections.length > 0) {
       session.reflections.forEach((reflection, index) => {
         const reflectionBlock = document.createElement('div');
-        reflectionBlock.className = 'session-task-preview';
+        reflectionBlock.className = 'session-task-preview session-expanded-section';
         reflectionBlock.innerHTML = `
-          <h3 class="session-task-question">${this.escapeHtml(this.t('labels.postFocusReflection', { index: index + 1 }))}</h3>
-          <p class="session-task-answer">${this.escapeHtml(this.t('labels.motivation'))}: ${reflection.motivation}/5</p>
-          <p class="session-task-answer">${this.escapeHtml(this.t('labels.meaningfulProgress'))}: ${reflection.meaning}/5</p>
+          <div class="session-expanded-label">${this.escapeHtml(this.t('labels.postFocusReflection', { index: index + 1 }))}</div>
+          <div class="session-score-row">
+            <span>${this.escapeHtml(this.t('labels.motivation'))}</span>
+            <span class="session-score-value">${this.createScoreDots(reflection.motivation)}</span>
+          </div>
+          <div class="session-score-row">
+            <span>${this.escapeHtml(this.t('labels.meaningfulProgress'))}</span>
+            <span class="session-score-value">${this.createScoreDots(reflection.meaning)}</span>
+          </div>
           <p class="session-task-answer">${this.escapeHtml(reflection.event)}</p>
         `;
         detailsContainer.appendChild(reflectionBlock);
@@ -994,6 +1222,10 @@ class TimerApp {
         detailsContainer.appendChild(divider);
       }
 
+      const intervalsSection = document.createElement('div');
+      intervalsSection.className = 'session-expanded-section';
+      intervalsSection.innerHTML = `<div class="session-expanded-label">${this.escapeHtml(this.t('labels.intervals'))}</div>`;
+
       session.focusIntervals.forEach((interval, index) => {
         const intervalFocus = interval.focusDuration || 0;
         const intervalStandby = interval.standbyDuration || 0;
@@ -1007,19 +1239,34 @@ class TimerApp {
           hour12: false
         });
         intervalRow.innerHTML = `
-          <span class="interval-start">${startTime}</span>
+          <span class="interval-start">#${index + 1} · ${startTime}</span>
           <span class="interval-focus">${this.formatTimeDetailed(intervalFocus)}</span>
           <span class="interval-standby">${this.formatTimeDetailed(intervalStandby)}</span>
           <span class="interval-ratio ${intervalRatioClass}">${this.formatRatio(intervalFocus, intervalStandby)}</span>
         `;
-        detailsContainer.appendChild(intervalRow);
+        intervalsSection.appendChild(intervalRow);
       });
+
+      detailsContainer.appendChild(intervalsSection);
     }
     
     // Toggle expand/collapse on click
-    summaryRow.addEventListener('click', () => {
+    const toggleDetails = () => {
       const isHidden = detailsContainer.classList.toggle('hidden');
-      summaryRow.querySelector('.expand-icon').textContent = isHidden ? '▶' : '▼';
+      row.classList.toggle('open', !isHidden);
+      summaryRow.setAttribute('aria-expanded', String(!isHidden));
+    };
+
+    summaryRow.addEventListener('click', toggleDetails);
+    summaryRow.addEventListener('keydown', (event) => {
+      if (event.target.closest('button')) {
+        return;
+      }
+
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggleDetails();
+      }
     });
 
     const deleteButton = summaryRow.querySelector('.session-delete-btn');
@@ -1052,90 +1299,95 @@ class TimerApp {
   closeSessionEditModal() {
     this.elements.sessionEditModal.classList.add('hidden');
     this.elements.sessionEditForm.innerHTML = '';
+    this.elements.sessionEditSubtitle.textContent = '';
     delete this.elements.sessionEditForm.dataset.sessionTimestamp;
   }
 
   populateSessionEditForm(session, form) {
-    const taskLabel = document.createElement('label');
-    taskLabel.className = 'session-task-label';
-    taskLabel.textContent = this.t('forms.sessionTaskExpanded');
-
-    const taskInput = document.createElement('textarea');
-    taskInput.className = 'session-task-input';
-    taskInput.name = 'task';
-    taskInput.rows = 3;
-    taskInput.value = session.task || '';
-
-    form.appendChild(taskLabel);
-    form.appendChild(taskInput);
-
     const intervals = Array.isArray(session.focusIntervals) ? session.focusIntervals : [];
-    intervals.forEach((interval, index) => {
-      const intervalEditor = document.createElement('div');
-      intervalEditor.className = 'session-edit-interval';
-
-      const title = document.createElement('span');
-      title.className = 'session-edit-interval-title';
-      title.textContent = `${this.t('labels.focus')} ${index + 1}`;
-
-      intervalEditor.appendChild(title);
-      intervalEditor.appendChild(this.createNumberField(
-        `${this.t('labels.focus')} (s)`,
-        `interval-${index}-focus`,
-        interval.focusDuration || 0,
-        { min: 0 },
-      ));
-      intervalEditor.appendChild(this.createNumberField(
-        `${this.t('labels.wait')} (s)`,
-        `interval-${index}-standby`,
-        interval.standbyDuration || 0,
-        { min: 0 },
-      ));
-      form.appendChild(intervalEditor);
-    });
-
     const reflections = Array.isArray(session.reflections) ? session.reflections : [];
-    reflections.forEach((reflection, index) => {
-      const reflectionEditor = document.createElement('div');
-      reflectionEditor.className = 'session-edit-reflection';
-
-      const title = document.createElement('span');
-      title.className = 'session-edit-interval-title';
-      title.textContent = this.t('labels.postFocusReflection', { index: index + 1 });
-
-      reflectionEditor.appendChild(title);
-      reflectionEditor.appendChild(this.createNumberField(
-        this.t('labels.motivation'),
-        `reflection-${index}-motivation`,
-        reflection.motivation || '',
-        { min: 1, max: 5 },
-      ));
-      reflectionEditor.appendChild(this.createNumberField(
-        this.t('labels.meaningfulProgress'),
-        `reflection-${index}-meaning`,
-        reflection.meaning || '',
-        { min: 1, max: 5 },
-      ));
-
-      const eventInput = document.createElement('textarea');
-      eventInput.className = 'session-task-input';
-      eventInput.name = `reflection-${index}-event`;
-      eventInput.rows = 2;
-      eventInput.value = reflection.event || '';
-      reflectionEditor.appendChild(eventInput);
-      form.appendChild(reflectionEditor);
+    const startTime = new Date(session.timestamp).toLocaleTimeString(this.getLocale(), {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
     });
+
+    this.elements.sessionEditSubtitle.textContent = this.t('labels.modalMeta', {
+      time: startTime,
+      intervals: this.formatIntervalCount(intervals.length),
+      focus: this.formatTimeDetailed(DB.getSessionFocusTime(session)),
+    });
+
+    const taskSection = document.createElement('section');
+    taskSection.className = 'edit-fieldset';
+    taskSection.innerHTML = `
+      <label class="edit-field-label" for="session-edit-task">${this.escapeHtml(this.t('labels.task'))}</label>
+      <div class="edit-field-hint">${this.escapeHtml(this.t('labels.taskHint'))}</div>
+      <textarea class="session-task-input session-edit-task-input" id="session-edit-task" name="task" rows="3">${this.escapeHtml(session.task || '')}</textarea>
+    `;
+    form.appendChild(taskSection);
+
+    const intervalsSection = document.createElement('section');
+    intervalsSection.className = 'edit-fieldset';
+    intervalsSection.innerHTML = `
+      <div class="edit-section-header">
+        <span class="edit-field-label">${this.escapeHtml(this.t('labels.intervals'))}</span>
+        <span class="edit-field-hint">${this.escapeHtml(this.formatIntervalCount(intervals.length))}</span>
+      </div>
+    `;
+
+    const intervalList = document.createElement('div');
+    intervalList.className = 'session-edit-interval-list';
+
+    if (intervals.length === 0) {
+      const emptyIntervals = document.createElement('div');
+      emptyIntervals.className = 'session-edit-empty-note';
+      emptyIntervals.textContent = this.t('labels.noCompletedFocus');
+      intervalList.appendChild(emptyIntervals);
+    }
+
+    intervals.forEach((interval, index) => {
+      const reflection = reflections[index] || {};
+      const intervalCard = document.createElement('article');
+      intervalCard.className = 'session-edit-interval-card';
+      intervalCard.innerHTML = `
+        <div class="session-edit-interval-header">
+          <span>${this.escapeHtml(this.t('labels.focus'))} <span class="session-edit-interval-number">#${index + 1}</span></span>
+        </div>
+        ${this.createDurationFieldsHtml(`interval-${index}-focus`, this.t('labels.focusDuration'), interval.focusDuration || 0)}
+        ${this.createDurationFieldsHtml(`interval-${index}-standby`, this.t('labels.waitDuration'), interval.standbyDuration || 0)}
+        <div class="session-edit-reflection-block">
+          ${this.createScoreFieldHtml(`reflection-${index}-motivation`, this.t('labels.motivation'), reflection.motivation)}
+          ${this.createScoreFieldHtml(`reflection-${index}-meaning`, this.t('labels.meaningfulProgress'), reflection.meaning)}
+          <label class="edit-fieldset">
+            <span class="edit-field-label">${this.escapeHtml(this.t('labels.reflectionNote'))}</span>
+            <textarea class="session-task-input" name="reflection-${index}-event" rows="2" placeholder="${this.escapeHtml(this.t('forms.reflectionEventPlaceholder'))}">${this.escapeHtml(reflection.event || '')}</textarea>
+          </label>
+        </div>
+      `;
+      intervalList.appendChild(intervalCard);
+    });
+
+    intervalsSection.appendChild(intervalList);
+    form.appendChild(intervalsSection);
 
     const actions = document.createElement('div');
-    actions.className = 'reflection-actions';
+    actions.className = 'session-edit-actions';
     actions.innerHTML = `
-      <button class="control-btn reflection-submit-btn" type="submit">${this.escapeHtml(this.t('actions.saveSession'))}</button>
       <button class="control-btn reflection-cancel-btn" type="button">${this.escapeHtml(this.t('actions.cancel'))}</button>
+      <button class="control-btn reflection-submit-btn" type="submit">${this.escapeHtml(this.t('actions.saveSession'))}</button>
     `;
     form.appendChild(actions);
 
     actions.querySelector('.reflection-cancel-btn').addEventListener('click', () => {
       this.closeSessionEditModal();
+    });
+
+    form.addEventListener('change', (event) => {
+      if (event.target.matches('[data-score-group] input[type="radio"]')) {
+        this.updateScoreGroup(event.target.closest('[data-score-group]'));
+      }
     });
 
     form.onsubmit = async (event) => {
@@ -1144,40 +1396,105 @@ class TimerApp {
     };
   }
 
-  createNumberField(labelText, name, value, { min = null, max = null } = {}) {
-    const label = document.createElement('label');
-    const labelSpan = document.createElement('span');
-    const input = document.createElement('input');
-
-    labelSpan.textContent = labelText;
-    input.type = 'number';
-    input.step = '1';
-    input.name = name;
-    input.value = value;
-
-    if (min !== null) {
-      input.min = String(min);
-    }
-
-    if (max !== null) {
-      input.max = String(max);
-    }
-
-    label.appendChild(labelSpan);
-    label.appendChild(input);
-    return label;
+  createDurationFieldsHtml(prefix, labelText, totalSeconds) {
+    const parts = this.splitDurationParts(totalSeconds);
+    return `
+      <div class="edit-fieldset">
+        <span class="edit-field-label">${this.escapeHtml(labelText)}</span>
+        <div class="duration-editor">
+          ${this.createDurationInputHtml(`${prefix}-hours`, parts.hours, this.t('labels.hours'), null)}
+          ${this.createDurationInputHtml(`${prefix}-minutes`, parts.minutes, this.t('labels.minutes'), 59)}
+          ${this.createDurationInputHtml(`${prefix}-seconds`, parts.seconds, this.t('labels.seconds'), 59)}
+        </div>
+      </div>
+    `;
   }
 
-  parseEditedDuration(value) {
+  createDurationInputHtml(name, value, label, max) {
+    const maxAttr = max === null ? '' : ` max="${max}"`;
+    return `
+      <label class="duration-cell">
+        <input class="duration-input" type="number" min="0"${maxAttr} step="1" name="${this.escapeHtml(name)}" value="${value}">
+        <span>${this.escapeHtml(label)}</span>
+      </label>
+    `;
+  }
+
+  createScoreFieldHtml(name, labelText, value) {
+    const score = this.parseEditedScaleValue(value, 0);
+    const options = Array.from({ length: 5 }, (_, index) => {
+      const optionValue = index + 1;
+      const isChecked = score === optionValue ? ' checked' : '';
+      const isOn = optionValue <= score ? ' on' : '';
+      return `
+        <label class="score-dot-option${isOn}">
+          <input type="radio" name="${this.escapeHtml(name)}" value="${optionValue}"${isChecked}>
+          <span class="score-dot-control" aria-hidden="true"></span>
+        </label>
+      `;
+    }).join('');
+
+    return `
+      <div class="edit-fieldset session-edit-score-field">
+        <span class="edit-field-label">${this.escapeHtml(labelText)}</span>
+        <div class="session-edit-score" data-score-group>
+          <div class="score-dot-options">${options}</div>
+          <span class="score-value">${score}/5</span>
+        </div>
+      </div>
+    `;
+  }
+
+  updateScoreGroup(group) {
+    if (!group) return;
+
+    const checked = group.querySelector('input[type="radio"]:checked');
+    const score = checked ? Number(checked.value) : 0;
+    group.querySelectorAll('.score-dot-option').forEach((option) => {
+      const input = option.querySelector('input[type="radio"]');
+      option.classList.toggle('on', Number(input.value) <= score);
+    });
+
+    const value = group.querySelector('.score-value');
+    if (value) {
+      value.textContent = `${score}/5`;
+    }
+  }
+
+  splitDurationParts(totalSeconds) {
+    const safeSeconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+    const hours = Math.floor(safeSeconds / 3600);
+    const minutes = Math.floor((safeSeconds % 3600) / 60);
+    const seconds = safeSeconds % 60;
+    return { hours, minutes, seconds };
+  }
+
+  parseEditedDurationPart(value, fallback = 0, max = null) {
     const duration = Number(value);
-    if (!Number.isFinite(duration) || duration < 0) {
-      return 0;
+    if (!Number.isFinite(duration)) {
+      return fallback;
     }
 
-    return Math.floor(duration);
+    const normalized = Math.max(0, Math.floor(duration));
+    if (max === null) {
+      return normalized;
+    }
+
+    return Math.min(max, normalized);
+  }
+
+  parseEditedDurationParts(formData, prefix) {
+    const hours = this.parseEditedDurationPart(formData.get(`${prefix}-hours`));
+    const minutes = this.parseEditedDurationPart(formData.get(`${prefix}-minutes`), 0, 59);
+    const seconds = this.parseEditedDurationPart(formData.get(`${prefix}-seconds`), 0, 59);
+    return (hours * 3600) + (minutes * 60) + seconds;
   }
 
   parseEditedScaleValue(value, fallback) {
+    if (value === null || value === '') {
+      return fallback;
+    }
+
     const score = Number(value);
     if (!Number.isFinite(score)) {
       return fallback;
@@ -1193,16 +1510,29 @@ class TimerApp {
 
     const updatedIntervals = intervals.map((interval, index) => ({
       ...interval,
-      focusDuration: this.parseEditedDuration(formData.get(`interval-${index}-focus`)),
-      standbyDuration: this.parseEditedDuration(formData.get(`interval-${index}-standby`)),
+      focusDuration: this.parseEditedDurationParts(formData, `interval-${index}-focus`),
+      standbyDuration: this.parseEditedDurationParts(formData, `interval-${index}-standby`),
     }));
 
-    const updatedReflections = reflections.map((reflection, index) => ({
+    const reflectionCount = Math.max(reflections.length, intervals.length);
+    const updatedReflections = Array.from({ length: reflectionCount }, (_, index) => {
+      const reflection = reflections[index] || {};
+      if (index >= intervals.length) {
+        return reflection;
+      }
+
+      return {
       ...reflection,
       motivation: this.parseEditedScaleValue(formData.get(`reflection-${index}-motivation`), reflection.motivation),
       meaning: this.parseEditedScaleValue(formData.get(`reflection-${index}-meaning`), reflection.meaning),
       event: String(formData.get(`reflection-${index}-event`) || '').trim(),
-    }));
+      };
+    }).filter((reflection, index) => (
+      index < intervals.length ||
+      reflection.motivation ||
+      reflection.meaning ||
+      reflection.event
+    ));
 
     try {
       const updatedSession = await DB.updateSessionByTimestamp(session.timestamp, {
@@ -1244,12 +1574,49 @@ class TimerApp {
     const el = this.elements;
     
     el.statsList.innerHTML = '';
-    
-    // Show all focus intervals
-    this.focusIntervals.forEach((interval) => {
+
+    const intervals = [...this.focusIntervals];
+    if (this.currentFocusInterval) {
+      intervals.push(this.currentFocusInterval);
+    }
+
+    const completedFocus = this.focusIntervals.reduce((sum, interval) => sum + (interval.focusDuration || 0), 0);
+    const currentFocus = this.currentFocusInterval ? (this.currentFocusInterval.focusDuration || 0) : 0;
+    let totalStandby = this.focusIntervals.reduce((sum, interval) => sum + (interval.standbyDuration || 0), 0);
+    if (this.currentFocusInterval) {
+      totalStandby += this.currentFocusInterval.standbyDuration || 0;
+    } else if (this.standbyStartTime) {
+      totalStandby += Math.floor((Date.now() - this.standbyStartTime) / 1000);
+    }
+
+    const totalFocus = completedFocus + currentFocus;
+    const ratioClass = this.getRatioClass(totalFocus, totalStandby);
+    const summary = `${this.formatTimeShort(totalFocus)} ${this.t('labels.focus').toLowerCase()} · ${this.formatTimeShort(totalStandby)} ${this.t('labels.wait').toLowerCase()}`;
+
+    el.liveIntervalCount.textContent = String(intervals.length);
+    el.liveSummary.textContent = summary;
+    el.liveTotalFocus.textContent = this.formatTimeShort(totalFocus);
+    el.liveTotalStandby.textContent = this.formatTimeShort(totalStandby);
+    el.liveTotalRatio.textContent = this.formatRatio(totalFocus, totalStandby);
+    el.liveTotalRatio.className = `total-ratio ${ratioClass}`;
+
+    if (intervals.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'live-empty';
+      empty.innerHTML = `
+        <span class="live-empty-dot" aria-hidden="true"></span>
+        <span>${this.escapeHtml(this.t('labels.noIntervalsYet'))} · ${this.escapeHtml(this.t('labels.firstFocus'))}</span>
+      `;
+      el.statsList.appendChild(empty);
+      return;
+    }
+
+    intervals.forEach((interval, index) => {
       const intervalFocus = interval.focusDuration || 0;
       const intervalStandby = interval.standbyDuration || 0;
-      const intervalRatioClass = this.getRatioClass(intervalFocus, intervalStandby);
+      const focusPercent = this.totalTime > 0
+        ? Math.min(100, Math.round((intervalFocus / this.totalTime) * 100))
+        : 0;
       const row = document.createElement('div');
       row.className = 'session-interval-row';
       const startTime = new Date(interval.startTime).toLocaleTimeString(this.getLocale(), {
@@ -1259,35 +1626,16 @@ class TimerApp {
         hour12: false
       });
       row.innerHTML = `
+        <span class="live-interval-index">#${index + 1}</span>
         <span class="interval-start">${startTime}</span>
+        <span class="live-bar" aria-hidden="true">
+          <span class="live-bar-fill" style="width: ${focusPercent}%"></span>
+        </span>
         <span class="interval-focus">${this.formatTimeShort(intervalFocus)}</span>
         <span class="interval-standby">${this.formatTimeShort(intervalStandby)}</span>
-        <span class="interval-ratio ${intervalRatioClass}">${this.formatRatio(intervalFocus, intervalStandby)}</span>
       `;
       el.statsList.appendChild(row);
     });
-    
-    // Add current interval if running
-    if (this.currentFocusInterval) {
-      const intervalFocus = this.currentFocusInterval.focusDuration || 0;
-      const intervalStandby = this.currentFocusInterval.standbyDuration || 0;
-      const intervalRatioClass = this.getRatioClass(intervalFocus, intervalStandby);
-      const row = document.createElement('div');
-      row.className = 'session-interval-row';
-      const startTime = new Date(this.currentFocusInterval.startTime).toLocaleTimeString(this.getLocale(), {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      });
-      row.innerHTML = `
-        <span class="interval-start">${startTime}</span>
-        <span class="interval-focus">${this.formatTimeShort(intervalFocus)}</span>
-        <span class="interval-standby">${this.formatTimeShort(intervalStandby)}</span>
-        <span class="interval-ratio ${intervalRatioClass}">${this.formatRatio(intervalFocus, intervalStandby)}</span>
-      `;
-      el.statsList.appendChild(row);
-    }
   }
 
   updateSessionTask(value) {
@@ -1314,6 +1662,45 @@ class TimerApp {
           ? this.t('messages.reflectionRequiredEndSession')
           : this.t('messages.reflectionRequiredNextBlock'))
       : this.t('titles.startPause');
+  }
+
+  formatTimerMeta(seconds) {
+    const safeSeconds = Math.max(0, Math.floor(seconds || 0));
+    const hours = Math.floor(safeSeconds / 3600);
+    const minutes = Math.floor((safeSeconds % 3600) / 60);
+    const remainingSeconds = safeSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+
+    return `${minutes}m ${remainingSeconds}s`;
+  }
+
+  updateTimerHeader() {
+    const el = this.elements;
+    if (!el.timerSubtitle) {
+      return;
+    }
+
+    if (this.isRunning && this.currentFocusInterval) {
+      const startTime = new Date(this.currentFocusInterval.startTime).toLocaleTimeString(this.getLocale(), {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      });
+      el.timerSubtitle.textContent = `${this.t('labels.focusing')} · ${this.t('labels.started').toLowerCase()} ${startTime}`;
+      return;
+    }
+
+    if (this.standbyStartTime && (this.focusIntervals.length > 0 || this.currentFocusInterval || this.timeLeft !== this.totalTime)) {
+      const standbySeconds = Math.floor((Date.now() - this.standbyStartTime) / 1000);
+      el.timerSubtitle.textContent = `${this.t('status.standby')} · ${this.formatTimerMeta(standbySeconds)} ${this.t('labels.elapsed')}`;
+      return;
+    }
+
+    el.timerSubtitle.textContent = `${this.t('labels.ready')} · ${this.workMinutes}m ${this.t('labels.planned')}`;
   }
 
   resetReflectionForm() {
@@ -1634,6 +2021,11 @@ class TimerApp {
   }
 
   setDuration(minutes) {
+    if (!Number.isFinite(minutes) || minutes < 1) {
+      return;
+    }
+
+    minutes = Math.min(999, Math.round(minutes));
     this.workMinutes = minutes;
     this.timeLeft = minutes * 60;
     this.totalTime = this.timeLeft;
@@ -1646,15 +2038,65 @@ class TimerApp {
     this.sendMessage({ type: 'updateTime', timeLeft: this.timeLeft, totalTime: this.totalTime });
   }
 
+  openCustomDurationEditor() {
+    const el = this.elements;
+    if (this.isRunning) {
+      return;
+    }
+
+    el.customDurationBtn.classList.add('hidden');
+    el.customDurationEditor.classList.remove('hidden');
+    el.customDurationInput.value = [5, 25, 50, 90].includes(this.workMinutes) ? '' : String(this.workMinutes);
+    requestAnimationFrame(() => {
+      el.customDurationInput.focus();
+      el.customDurationInput.select();
+    });
+  }
+
+  closeCustomDurationEditor() {
+    const el = this.elements;
+    el.customDurationEditor.classList.add('hidden');
+    el.customDurationBtn.classList.remove('hidden');
+    el.customDurationInput.value = '';
+  }
+
+  commitCustomDuration() {
+    const rawValue = Number(this.elements.customDurationInput.value);
+    this.closeCustomDurationEditor();
+
+    if (!Number.isFinite(rawValue) || rawValue < 1) {
+      this.updateDuration();
+      return;
+    }
+
+    this.setDuration(rawValue);
+  }
+
   updateDuration() {
     const el = this.elements;
+    const presetDurations = [5, 25, 50, 90];
+    const isCustomDuration = !presetDurations.includes(this.workMinutes);
+
     el.durationBtns.forEach(btn => {
-      if (parseInt(btn.dataset.duration) === this.workMinutes) {
+      if (btn.dataset.duration === 'custom') {
+        btn.classList.toggle('duration-active', isCustomDuration);
+        return;
+      }
+
+      if (parseInt(btn.dataset.duration, 10) === this.workMinutes) {
         btn.classList.add('duration-active');
       } else {
         btn.classList.remove('duration-active');
       }
     });
+
+    if (isCustomDuration) {
+      el.customDurationValue.textContent = String(this.workMinutes);
+      el.customDurationUnit.textContent = this.t('labels.minutesShort');
+    } else {
+      el.customDurationValue.textContent = '+';
+      el.customDurationUnit.textContent = this.t('labels.custom');
+    }
   }
 
   toggleTimer() {
@@ -1844,6 +2286,7 @@ class TimerApp {
 
     this.updateDigitPair(el.minTens, el.minUnits, minutes);
     this.updateDigitPair(el.secTens, el.secUnits, seconds);
+    this.updateTimerHeader();
   }
   
   updateDigitPair(tensContainer, unitsContainer, value) {
@@ -1875,6 +2318,15 @@ class TimerApp {
   updateControls() {
     const el = this.elements;
     el.duration.classList.toggle('disabled', this.isRunning);
+    el.durationHint.classList.toggle('hidden', this.isRunning);
+
+    if (this.isRunning) {
+      el.playBtnLabel.textContent = this.t('actions.pause');
+    } else if (this.focusIntervals.length > 0 || this.currentFocusInterval || this.timeLeft !== this.totalTime) {
+      el.playBtnLabel.textContent = this.t('actions.resume');
+    } else {
+      el.playBtnLabel.textContent = this.t('actions.startFocus');
+    }
   }
 
   updatePie() {

@@ -12,13 +12,19 @@
     <div class="start-screen" id="start-screen">
       <div class="start-content">
         <div class="start-header">
-          <h1 class="start-title" data-i18n="screen.focusSession">Focus Session</h1>
+          <div class="start-title-group">
+            <h1 class="start-title" data-i18n="screen.focusSession">Focus Session</h1>
+            <div class="start-subtitle" id="start-subtitle" data-i18n="empty.noSessions">No sessions yet</div>
+          </div>
           <button class="start-btn" id="start-btn" data-i18n="actions.newSession">New Session</button>
         </div>
         
         <div class="sessions-container">
           <div class="sessions-header">
-            <span class="sessions-title" data-i18n="labels.sessions">Sessions</span>
+            <span class="sessions-title">
+              <span data-i18n="labels.sessions">Sessions</span>
+              <span class="sessions-count" id="sessions-count">0</span>
+            </span>
             <div class="sessions-actions">
               <button class="clear-btn" id="export-btn" title="Download all sessions as CSV" data-i18n="actions.exportCsv" data-i18n-title="titles.exportCsv">Export CSV</button>
               <button class="clear-btn" id="clear-btn" title="Clear all sessions" data-i18n="actions.clear" data-i18n-title="titles.clearSessions">Clear</button>
@@ -36,26 +42,63 @@
           
           <div class="sessions-footer" id="sessions-footer">
             <div class="sessions-total">
-              <span class="total-label" data-i18n="labels.total">Total</span>
-              <span class="total-work" id="total-work">0m</span>
-              <span class="total-standby" id="total-standby">0m</span>
-              <span class="total-ratio" id="total-ratio">—</span>
+              <div class="total-cell">
+                <span class="total-label" data-i18n="labels.totalFocus">Total focus</span>
+                <span class="total-work" id="total-work">0m</span>
+              </div>
+              <div class="total-cell">
+                <span class="total-label" data-i18n="labels.totalWait">Total wait</span>
+                <span class="total-standby" id="total-standby">0m</span>
+              </div>
+              <div class="total-cell total-cell-ratio">
+                <span class="total-label" data-i18n="labels.avgRatio">Avg ratio</span>
+                <span class="total-ratio" id="total-ratio">—</span>
+              </div>
             </div>
           </div>
           
-          <div class="sessions-empty hidden" id="sessions-empty" data-i18n="empty.noSessions">No sessions yet</div>
+          <div class="sessions-empty hidden" id="sessions-empty">
+            <div class="empty-mark" aria-hidden="true"></div>
+            <h2 class="empty-title" data-i18n="empty.noSessions">No sessions yet</h2>
+            <p class="empty-hint" data-i18n="empty.noSessionsHint">Start a focus session to begin tracking your work and wait time.</p>
+            <button class="start-btn empty-start-btn" id="empty-start-btn" type="button" data-i18n="actions.newSession">New Session</button>
+          </div>
         </div>
       </div>
     </div>
 
 
     <div class="timer-screen hidden" id="timer-screen">
+      <div class="timer-header">
+        <div class="timer-title-group">
+          <h1 class="timer-title" data-i18n="screen.focusSession">Focus Session</h1>
+          <div class="timer-subtitle" id="timer-subtitle">Ready · 5m planned</div>
+        </div>
+        <button class="timer-close-btn" id="timer-close-btn" type="button" title="Close session" aria-label="Close session" data-i18n-title="titles.closeSession" data-i18n-aria-label="titles.closeSession">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true">
+            <path d="M3 3l10 10M13 3L3 13"></path>
+          </svg>
+        </button>
+      </div>
+
       <div class="top-bar">
+        <div class="preset-label">
+          <span class="section-label" data-i18n="labels.duration">Duration</span>
+          <span class="label-hint" id="duration-hint" data-i18n="labels.chooseMinutes">Choose minutes</span>
+        </div>
         <div class="duration-control" id="duration-control">
           <button class="duration-btn duration-active" data-duration="5">5</button>
           <button class="duration-btn" data-duration="25">25</button>
           <button class="duration-btn" data-duration="50">50</button>
           <button class="duration-btn" data-duration="90">90</button>
+          <button class="duration-btn custom-duration-btn" id="custom-duration-btn" data-duration="custom" type="button" title="Custom duration" data-i18n-title="titles.customDuration">
+            <span class="custom-duration-value" id="custom-duration-value">+</span>
+            <span class="duration-unit" id="custom-duration-unit" data-i18n="labels.custom">custom</span>
+          </button>
+          <label class="custom-duration-editor hidden" id="custom-duration-editor">
+            <input class="custom-duration-input" id="custom-duration-input" type="number" min="1" max="999" step="1" inputmode="numeric" aria-label="Custom duration in minutes" data-i18n-aria-label="titles.customDuration">
+            <span class="duration-unit" data-i18n="labels.minutesShort">min</span>
+          </label>
         </div>
       </div>
 
@@ -85,6 +128,7 @@
             <rect class="play-icon-pause" x="6" y="4" width="4" height="16"></rect>
             <rect class="play-icon-pause" x="14" y="4" width="4" height="16"></rect>
           </svg>
+          <span class="control-text" id="play-btn-label" data-i18n="actions.startFocus">Start focus</span>
         </button>
         <button class="control-btn" id="end-session-btn" data-i18n="actions.endSession">End Session</button>
       </div>
@@ -155,20 +199,38 @@
       </form>
 
       <div class="sessions-container timer-sessions">
-        <div class="sessions-table-header">
-          <div data-i18n="labels.session">Session</div>
-          <div data-i18n="labels.focus">Focus</div>
-          <div data-i18n="labels.wait">Wait</div>
-          <div data-i18n="labels.ratio">Ratio</div>
+        <div class="live-header">
+          <span class="section-label">
+            <span data-i18n="labels.thisSession">This session</span>
+            <span class="sessions-count" id="live-interval-count">0</span>
+          </span>
+          <span class="label-hint" id="live-summary">0s focus · 0s wait</span>
         </div>
         <div class="stats-list" id="stats-list"></div>
+        <div class="timer-total-strip" role="group" aria-label="Session totals">
+          <div class="total-cell">
+            <span class="total-label" data-i18n="labels.focusSoFar">Focus so far</span>
+            <span class="total-work" id="live-total-focus">0s</span>
+          </div>
+          <div class="total-cell">
+            <span class="total-label" data-i18n="labels.waitSoFar">Wait so far</span>
+            <span class="total-standby" id="live-total-standby">0s</span>
+          </div>
+          <div class="total-cell total-cell-ratio">
+            <span class="total-label" data-i18n="labels.ratio">Ratio</span>
+            <span class="total-ratio ratio-neutral" id="live-total-ratio">—</span>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="modal-overlay hidden" id="session-edit-modal" role="dialog" aria-modal="true" aria-labelledby="session-edit-title">
       <div class="modal-panel">
         <div class="modal-header">
-          <h2 class="modal-title" id="session-edit-title" data-i18n="titles.editSession">Edit session</h2>
+          <div class="modal-title-group">
+            <h2 class="modal-title" id="session-edit-title" data-i18n="titles.editSession">Edit session</h2>
+            <div class="modal-subtitle" id="session-edit-subtitle"></div>
+          </div>
           <button class="modal-close-btn" id="session-edit-close-btn" type="button" aria-label="Close" data-i18n-aria-label="messages.close">×</button>
         </div>
         <form class="session-edit-form" id="session-edit-form"></form>
